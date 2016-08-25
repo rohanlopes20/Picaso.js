@@ -1,3 +1,4 @@
+var ctx;
 //Colors from https://flatuicolors.com/
 var globalColorArray = ["#C91F37","#DC3023","#9D2933","#CF000F","#E68364","#F22613","#CF3A24","#C3272B","#8F1D21","#D24D57","#F08F90","#F47983","#DB5A6B","#C93756","#FCC9B9","#FFB3A7","#F62459","#F58F84","#875F9A","#5D3F6A","#89729E","#763568","#8D608C","#A87CA0","#5B3256","#BF55EC","#8E44AD","#9B59B6","#BE90D4","#4D8FAC","#5D8CAE","#22A7F0","#19B5FE","#59ABE3","#48929B","#317589","#89C4F4","#4B77BE","#1F4788","#003171","#044F67","#264348","#7A942E","#8DB255","#5B8930","#6B9362","#407A52","#006442","#87D37C","#26A65B","#26C281","#049372","#2ABB9B","#16A085","#36D7B7","#03A678","#4DAF7C","#D9B611","#F3C13A","#F7CA18","#E2B13C","#A17917","#F5D76E","#F4D03F","#FFA400","#E08A1E","#FFB61E","#FAA945","#FFA631","#FFB94E","#E29C45","#F9690E","#CA6924","#F5AB35","#BFBFBF","#F2F1EF","#BDC3C7","#ECF0F1","#D2D7D3","#757D75","#EEEEEE","#ABB7B7","#6C7A89","#95A5A6"];
 
@@ -27,6 +28,32 @@ function shadeColor(color, percent) {
     return "#"+RR+GG+BB;
 }
 
+//http://stackoverflow.com/questions/17125632/html5-canvas-rotate-object-without-moving-coordinates
+
+function drawRotatedRect(x, y, width, height, degrees, color) {
+
+    // first save the untranslated/unrotated context
+    ctx.save();
+
+    ctx.beginPath();
+    // move the rotation point to the center of the rect
+    ctx.translate(x + width / 2, y + height / 2);
+    // rotate the rect
+    ctx.rotate(degrees * Math.PI / 180);
+
+    // draw the rect on the transformed context
+    // Note: after transforming [0,0] is visually [x,y]
+    //       so the rect needs to be offset accordingly when drawn
+    ctx.rect(-width / 2, -height / 2, width, height);
+
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // restore the context to its untranslated/unrotated state
+    ctx.restore();
+
+}
+
 function Picaso(Obj){
 
 	var about = {
@@ -49,8 +76,9 @@ function Picaso(Obj){
 
 Picaso.prototype = {
 	canvas: function(){
-		console.log(this);
-	    var lineCanvas = document.getElementById("myCanvas");
+		console.log(this); 	
+
+	    var lineCanvas = document.createElement("CANVAS");
 	    var winH = this.e.height;
 	    var winW = this.e.width;
 	    var blocksX = (this.e.blocksX > 5) ? this.e.blocksX : 5;
@@ -59,7 +87,8 @@ Picaso.prototype = {
 
 	    lineCanvas.width  = winW - 5;
 		lineCanvas.height = winH - 5;
-		var ctx = lineCanvas.getContext("2d");
+		ctx = lineCanvas.getContext("2d");
+		document.body.appendChild(lineCanvas);
 		
 		var horSquares = winW/5;
 		var verSquares = winH/5;
@@ -77,12 +106,12 @@ Picaso.prototype = {
 				y2 = y1 + blocksY;
 				// ctx.globalAlpha = 0.9;
 
-				type = (randomRange(0, 6) == 6) ? "circle" : "rect";
+				type = (randomRange(0, 6) == 6) ? "circle" : (randomRange(0, 6) == 3) ? "rectRamdom" :"rect";
 				var shadePercentage = [-50, -40, -20, 20, 40, 80];
 
 				switch(type) {
 					case "circle" :
-						var color = shadeColor(globalColorArray[randomRange(0, globalColorArray.length-1)], shadePercentage[randomRange(0, shadePercentage.length)]);
+						var color = shadeColor(globalColorArray[randomRange(0, globalColorArray.length-20)], shadePercentage[randomRange(0, shadePercentage.length)]);
 						ctx.save();
 			            ctx.beginPath();
 			            var tmpX = (x2 - x1)/2;
@@ -98,11 +127,17 @@ Picaso.prototype = {
 						designObj.push({"x1" : x1, "y1" : y1, "x2" : x2, "y2" : y2, "cx" : x2, "cy" : y2, "r":radius, "color" : color});
 						break;
 					case "rect" :
-						var color = shadeColor(globalColorArray[randomRange(10, globalColorArray.length-1)], shadePercentage[randomRange(0, shadePercentage.length)]);
+						var color = shadeColor(globalColorArray[randomRange(0, globalColorArray.length-20)], shadePercentage[randomRange(0, shadePercentage.length)]);
 						ctx.fillStyle = color;
+						// drawRotatedRect(x1, y1, 35, 35, 45, color);
 						ctx.fillRect(x1, y1, x2, y2);
-						/*var rad = 2 * Math.PI - 25 * Math.PI / 180;    
-						ctx.rotate(rad);*/
+						designObj.push({"x1" : x1, "y1" : y1, "x2" : x2, "y2" : y2, "color" : color});
+						break;
+					case "rectRamdom" :
+						var color = shadeColor(globalColorArray[randomRange(0, globalColorArray.length-20)], shadePercentage[randomRange(0, shadePercentage.length)]);
+						// ctx.fillStyle = color;
+						drawRotatedRect(x1+6, y1+5, blocksX*0.6, blocksY*0.6, 45, color);
+						// ctx.fillRect(x1, y1, x2, y2);
 						designObj.push({"x1" : x1, "y1" : y1, "x2" : x2, "y2" : y2, "color" : color});
 						break;
 					default:
@@ -125,16 +160,16 @@ Picaso.prototype = {
 	ArrayData : []
 };
 
-/*Picaso({
-	"blocksX" : 20,
-	"blocksY" : 20,
+Picaso({
+	"blocksX" : 35,
+	"blocksY" : 35,
 	"height"  : window.innerHeight,
 	"width"	  : window.innerWidth,
 	"type"	  : "rect",
 	"shade"   : "random"
-}).canvas();*/
+}).canvas();
 
-var timer = setInterval(function(){
+/*var timer = setInterval(function(){
 	var xy = randomRange(20, 50);
 	Picaso({
 		"blocksX" : xy,
@@ -144,4 +179,6 @@ var timer = setInterval(function(){
 		"type"	  : "rect",
 		"shade"   : "random"
 	}).canvas();
-}, 1000);
+}, 1000);*/
+
+/*Need to add paint shades*/
