@@ -1,11 +1,10 @@
-# Picaso.js
-===========
+# :art: Picaso.js
 
 #### JavaScript RandomBg Img library ####
 
 This is JS library for creating beautiful canvas backgrounds. 
 
-#### Usage ####
+#### :bulb: Usage ####
 
 Download Picaso.js from git repo and include it in your html.
 
